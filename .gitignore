@@ -1,0 +1,6 @@
+# Swap files
+*.swp
+
+# Log files created by slurm
+*.out
+*.err

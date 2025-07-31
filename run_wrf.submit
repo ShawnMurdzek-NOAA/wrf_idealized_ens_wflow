@@ -1,0 +1,94 @@
+#!/bin/bash
+
+#SBATCH --ntasks=4
+#SBATCH --time=00:30:00
+#SBATCH -J WRF
+#SBATCH --error=%x-%J.err
+#SBATCH --output=%x-%J.out
+#SBATCH --mem=20G
+
+#---------------------------------------------------------------------------------------------------
+# User-defined parameters
+
+# Paths
+wrf_env=/home/ahouston/smurdzek/WRF_code/wrf.env
+wrf_src=/home/ahouston/smurdzek/WRF_code/idealized/em_quarter_ss_modified/WRF
+run_dir=/work/ahouston/smurdzek/WRF_ens_init_CM1_rst04/mixed_phys_6mem
+cm1_rst=/work/ahouston/smurdzek/CM1_output/cm1out_rst_000004.nc
+py_script_dir=/home/ahouston/smurdzek/py_scripts
+
+# Ensemble member configurations
+ens_subdir=( mynn_rrtm  ysu_rrtm  myj_rrtm
+             mynn_rrtmg ysu_rrtmg myj_rrtmg )
+pbl_opt=( 5 1 2
+          5 1 2 )
+sfclay_opt=( 2 1 2
+             2 1 2 )
+ra_sw_opt=( 4 4 4
+            4 4 4 )
+ra_lw_opt=( 1 1 1
+            4 4 4 )
+skebs_opt=( 0 0 0
+            0 0 0 )
+
+# Option to modify wrfinput_d01 (1 = modify wrfinput_d01, 0 = don't modify wrfinput_d01)
+mod_wrfinput=1
+
+# Constant droplet number concentation (cm^-3). Passed to py_script/wrf/modify_wrf_with_cm1.py  
+ndcnst=300
+
+
+#---------------------------------------------------------------------------------------------------
+
+home=`pwd`
+
+source ${wrf_env}
+module list
+
+for i in "${!ens_subdir[@]}"; do
+
+  echo
+  echo "================================="
+  echo "Running ensemble ${ens_subdir[i]}"
+  date
+  echo
+
+  # Create run directory
+  mkdir -p ${run_dir}/${ens_subdir[i]}
+  bash ${home}/scripts/copy_run.sh ${wrf_src} ${run_dir}/${ens_subdir[i]}
+
+  # Copy namelist and input sounding
+  cd ${run_dir}/${ens_subdir[i]}/run
+  cp ${home}/fix/input_sounding .
+  cp ${home}/fix/namelist.input.TEMPLATE ./namelist.input
+
+  # Modify namelist
+  sed -i "s={PBL_OPT}=${pbl_opt[i]}=" ./namelist.input
+  sed -i "s={SFCLAY_OPT}=${sfclay_opt[i]}=" ./namelist.input
+  sed -i "s={RA_SW_OPT}=${ra_sw_opt[i]}=" ./namelist.input
+  sed -i "s={RA_LW_OPT}=${ra_lw_opt[i]}=" ./namelist.input
+  sed -i "s={SKEBS_OPT}=${skebs_opt[i]}=" ./namelist.input
+  sed -i "s={NENS}=${i}=" ./namelist.input
+
+  # Create wrfinput_d01 file
+  srun -n 1 ./ideal.exe
+
+  # Modify wrfinput_d01 using CM1 output
+  if [[ ${mod_wrfinput} -eq 1 ]]; then
+    mv wrfinput_d01 wrfinput_d01_original
+    module purge
+    module load anaconda
+    conda activate my_py
+    python ${py_script_dir}/wrf/modify_wrf_with_cm1.py \
+           ${cm1_rst} \
+           ${home}/fix/input_sounding_cm1 \
+           wrfinput_d01_original \
+           wrfinput_d01 \
+           --ndcnst ${ndcnst}
+  fi
+
+  # Run WRF
+  source ${wrf_env}
+  srun ./wrf.exe
+ 
+done
