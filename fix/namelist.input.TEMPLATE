@@ -72,6 +72,12 @@
  &stoch
  nens                                = {NENS},
  skebs                               = {SKEBS_OPT},
+ tot_backscat_psi                    = 1.0e-5,
+ tot_backscat_t                      = 1.0e-6,
+ ztau_psi                            = 10800.0,
+ ztau_t                              = 10800.0,
+ rexponent_psi                       = -1.83,
+ rexponent_t                         = -1.83,
  /
 
  &fdda
