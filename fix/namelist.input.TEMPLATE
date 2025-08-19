@@ -66,7 +66,6 @@
  sf_surface_physics                  = 1,
  bl_pbl_physics                      = {PBL_OPT},
  bldt                                = 0,
- bl_mynn_tkebudget                   = 0,
  bl_mynn_tkeadvect                   = .false.,
  bl_mynn_cloudpdf                    = 0,
  bl_mynn_edmf                        = 0,
