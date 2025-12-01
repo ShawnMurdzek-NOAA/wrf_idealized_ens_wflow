@@ -127,6 +127,7 @@
  chem_adv_opt                        = 2,
  tracer_opt                          = 0,
  mix_full_fields                     = .true.,
+ use_theta_m                         = 0,
  /
 
  &bdy_control

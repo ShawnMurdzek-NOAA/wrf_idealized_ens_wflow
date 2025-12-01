@@ -1,11 +1,12 @@
 #!/bin/bash
 
 #SBATCH --ntasks=4
-#SBATCH --time=01:30:00
+#SBATCH --time=00:15:00
 #SBATCH -J WRF
 #SBATCH --error=%x-%J.err
 #SBATCH --output=%x-%J.out
 #SBATCH --mem=20G
+#SBATCH --qos=short
 
 #---------------------------------------------------------------------------------------------------
 # User-defined parameters
@@ -13,26 +14,26 @@
 # Paths
 wrf_env=/home/ahouston/smurdzek/WRF_code/wrf.env
 wrf_src=/home/ahouston/smurdzek/WRF_code/idealized/em_quarter_ss_modified/WRF
-run_dir=/work/ahouston/smurdzek/WRF_ens_skeb_tests/psi1e-5_t1e-6_ztau10800_exp1.83
+run_dir=/work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/ctrl
 cm1_rst=/work/ahouston/smurdzek/CM1_output/cm1out_rst_000004.nc
 py_script_dir=/home/ahouston/smurdzek/py_scripts
 
 # Ensemble member configurations
-ens_subdir=()
-pbl_opt=()
-sfclay_opt=()
-ra_sw_opt=()
-ra_lw_opt=()
-skebs_opt=()
+ens_subdir=(WRF)
+pbl_opt=(5)
+sfclay_opt=(5)
+ra_sw_opt=(4)
+ra_lw_opt=(4)
+skebs_opt=(0)
 
-for i in $(seq 1 1 18); do
-  ens_subdir+=("skeb${i}")
-  pbl_opt+=(5)
-  sfclay_opt+=(5)
-  ra_sw_opt+=(4)
-  ra_lw_opt+=(4)
-  skebs_opt+=(1)
-done
+#for i in $(seq 1 1 18); do
+#  ens_subdir+=("skeb${i}")
+#  pbl_opt+=(5)
+#  sfclay_opt+=(5)
+#  ra_sw_opt+=(4)
+#  ra_lw_opt+=(4)
+#  skebs_opt+=(1)
+#done
 
 # Option to modify wrfinput_d01 (1 = modify wrfinput_d01, 0 = don't modify wrfinput_d01)
 mod_wrfinput=1
@@ -87,7 +88,8 @@ for i in "${!ens_subdir[@]}"; do
            ${home}/fix/input_sounding_cm1 \
            wrfinput_d01_original \
            wrfinput_d01 \
-           --ndcnst ${ndcnst}
+           --ndcnst ${ndcnst} \
+           --use_thm 0
   fi
 
   # Run WRF
