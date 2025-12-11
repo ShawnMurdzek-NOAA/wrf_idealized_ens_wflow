@@ -9,16 +9,30 @@
 #SBATCH --qos=short
 
 #---------------------------------------------------------------------------------------------------
+# Description
+
+# This script runs an ensemble of WRF idealized simulations and includes options for...
+#     1. Modifying the WRF initial conditions so they match a CM1 restart file
+#     2. Using different PBL, surface layer, and radiation schemes for each ensemble member (similar
+#        to WoFS)
+#     3. Using SKEB, with each ensemble member using a different random number seed
+
+#---------------------------------------------------------------------------------------------------
 # User-defined parameters
 
 # Paths
 wrf_env=/home/ahouston/smurdzek/WRF_code/wrf.env
-wrf_src=/home/ahouston/smurdzek/WRF_code/idealized/em_quarter_ss_modified/WRF
-run_dir=/work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/ctrl
+run_dir=/work/ahouston/smurdzek/wrf_ens_github_test
 cm1_rst=/work/ahouston/smurdzek/CM1_output/cm1out_rst_000004.nc
-py_script_dir=/home/ahouston/smurdzek/py_scripts
+home=`pwd`
+
+# Machine (needed for loading the proper environment)
+# Note that the top portion of this script will likely need to be edited for different machines
+machine='swan'
 
 # Ensemble member configurations
+
+# Single control member
 ens_subdir=(WRF)
 pbl_opt=(5)
 sfclay_opt=(5)
@@ -26,6 +40,8 @@ ra_sw_opt=(4)
 ra_lw_opt=(4)
 skebs_opt=(0)
 
+# Create an 18-member ensemble all with the same physics options, but with different SKEB random
+# number seeds
 #for i in $(seq 1 1 18); do
 #  ens_subdir+=("skeb${i}")
 #  pbl_opt+=(5)
@@ -35,18 +51,19 @@ skebs_opt=(0)
 #  skebs_opt+=(1)
 #done
 
-# Option to modify wrfinput_d01 (1 = modify wrfinput_d01, 0 = don't modify wrfinput_d01)
+# Option to modify wrfinput_d01 with CM1 restart file 
+# (1 = modify wrfinput_d01, 0 = don't modify wrfinput_d01)
 mod_wrfinput=1
 
-# Constant droplet number concentation (cm^-3). Passed to py_script/wrf/modify_wrf_with_cm1.py  
+# Constant droplet number concentation (cm^-3). Passed to ./scripts/modify_wrf_with_cm1.py  
+# Only used if mod_wrfinput=1
 ndcnst=300
 
 
 #---------------------------------------------------------------------------------------------------
+# You shouldn't need to modify anything below here
 
-home=`pwd`
-
-source ${wrf_env}
+source ${home}/env/wrf_${machine}.env
 module list
 
 for i in "${!ens_subdir[@]}"; do
@@ -80,10 +97,8 @@ for i in "${!ens_subdir[@]}"; do
   # Modify wrfinput_d01 using CM1 output
   if [[ ${mod_wrfinput} -eq 1 ]]; then
     mv wrfinput_d01 wrfinput_d01_original
-    module purge
-    module load anaconda
-    conda activate my_py
-    python ${py_script_dir}/wrf/modify_wrf_with_cm1.py \
+    source ${home}/env/python_${machine}.env
+    python ${home}/scripts/modify_wrf_with_cm1.py \
            ${cm1_rst} \
            ${home}/fix/input_sounding_cm1 \
            wrfinput_d01_original \
@@ -93,7 +108,7 @@ for i in "${!ens_subdir[@]}"; do
   fi
 
   # Run WRF
-  source ${wrf_env}
+  source ${home}/env/wrf_${machine}.env
   srun ./wrf.exe
  
 done

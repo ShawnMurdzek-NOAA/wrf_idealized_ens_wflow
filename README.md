@@ -1,10 +1,22 @@
-# Workflow for Idealized WRF Ensembles on UNL HCC
+# Workflow for Idealized WRF Ensembles
 
-## Instructions to Run
+Various scripts and utilities for running idealized WRF ensembles.
 
-1. Compile WRF
-2. Edit the "User-defined parameters" portion of `run_wrf.submit`
-3. `sbatch run_wrf.submit`
+## Instructions to run
+
+### Setup: Only need to do this once
+
+*In the following sections, {machine} is the machine name. For UNL HCC, {machine} = swan*
+
+1. If it does not already exist for the desired machine, create a WRF environment file in `./env/wrf_{machine}.env`.  
+2. Compile WRF using the environment in `./env/wrf_{machine}.env`.
+3. Create a Python environment using the environment in `./env/py_wrf_ens.yml`. If conda is available, this can be done using `conda env create -f ./env/py_wrf_ens.yml`
+4. Create a Python environment file using the Python environment created in (3) in `./env/python_{machine}.env`.
+
+### Running an ensemble
+
+1. Edit the "User-defined parameters" portion of `run_wrf.submit`
+2. `sbatch run_wrf.submit`
 
 ## Description of User-Defined Parameters
 
@@ -13,7 +25,6 @@
 - `wrf_src`: Directory containing compiled idealized (em_quarter_ss) WRF code.
 - `run_dir`: Parent directory where are ensemble runs will be performed.
 - `cm1_rst`: CM1 restart file used to initialize the idealized WRF runs.
-- `py_script_dir`: Path to [py_scripts](https://github.com/ShawnMurdzek-NOAA/py_scripts/tree/main). Needed to modify wrfinput file with CM1 restart fields.
 
 ### Ensemble member configurations
 *Each variable is a list with each entry corresponding to a different ensemble member*  
