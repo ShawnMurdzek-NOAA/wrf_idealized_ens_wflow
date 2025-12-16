@@ -21,18 +21,35 @@
 # User-defined parameters
 
 # Paths
-wrf_env=/home/ahouston/smurdzek/WRF_code/wrf.env
+# -----
+# run_dir: Where the WRF ensemble will be run
+# wrf_src: Location of the compiled WRF code
+# cm1_rst: CM1 restart file used to modify wrfinput_d01. Only used if mod_wrfinput=1
+# home: Should not need to change this
 run_dir=/work/ahouston/smurdzek/wrf_ens_github_test
+wrf_src=/home/ahouston/smurdzek/WRF_code/idealized/em_quarter_ss_modified/WRF
 cm1_rst=/work/ahouston/smurdzek/CM1_output/cm1out_rst_000004.nc
 home=`pwd`
 
 # Machine (needed for loading the proper environment)
-# Note that the top portion of this script will likely need to be edited for different machines
+# ---------------------------------------------------
+# Note that the top portion of this script (i.e., the SBATCH parameters) will likely need to be 
+# edited for different machines
 machine='swan'
 
 # Ensemble member configurations
+# ------------------------------
+# Each of the variables below is a list, and each list entry corresponds to a different ensemble
+# member. More information on WRF namelist options: 
+# https://www2.mmm.ucar.edu/wrf/users/wrf_users_guide/build/html/namelist_variables.html
+# ens_subdir: Name of the subdirectory for this ensembl member
+# pbl_opt: WRF bl_pbl_physics option for this ensemble member
+# sfclay_opt: WRF sf_sfclay_physics option for this ensemble member
+# ra_sw_opt: WRF ra_sw_physics option for this ensemble member
+# ra_lw_opt: WRF ra_lw_physics option for this ensemble member
+# skeb_opt: WRF skebs option for this ensemble member. 0 = don't use SKEB, 1 = use SKEB
 
-# Single control member
+# Single control member, no SKEB
 ens_subdir=(WRF)
 pbl_opt=(5)
 sfclay_opt=(5)
@@ -50,6 +67,9 @@ skebs_opt=(0)
 #  ra_lw_opt+=(4)
 #  skebs_opt+=(1)
 #done
+
+# Options related to modifying WRF ICs using a CM1 restart file
+# -------------------------------------------------------------
 
 # Option to modify wrfinput_d01 with CM1 restart file 
 # (1 = modify wrfinput_d01, 0 = don't modify wrfinput_d01)
