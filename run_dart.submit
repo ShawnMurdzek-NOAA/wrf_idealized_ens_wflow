@@ -14,7 +14,7 @@
 # User-defined parameters
 
 # Initialize environment variables in user_config.sh
-bash user_config.sh
+source user_config.sh
 
 # WRF Ensemble Priors
 # -------------------

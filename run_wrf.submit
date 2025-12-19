@@ -20,7 +20,7 @@
 # User-defined parameters
 
 # Initialize environment variables in user_config.sh
-bash user_config.sh
+source user_config.sh
 
 # Ensemble member configurations
 # ------------------------------
@@ -86,7 +86,7 @@ for i in "${!ens_subdir[@]}"; do
   # Copy namelist and input sounding
   cd ${RUN_DIR}/${ens_subdir[i]}/run
   cp ${WFLOW_HOME}/fix/input_sounding .
-  cp ${WFLOW_HOM}/fix/namelist.input.TEMPLATE ./namelist.input
+  cp ${WFLOW_HOME}/fix/namelist.input.TEMPLATE ./namelist.input
 
   # Modify namelist
   sed -i "s={PBL_OPT}=${pbl_opt[i]}=" ./namelist.input
