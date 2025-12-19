@@ -3,7 +3,6 @@
 #SBATCH --ntasks=4
 #SBATCH --time=00:15:00
 #SBATCH -J WRF
-#SBATCH --error=%x-%J.err
 #SBATCH --output=%x-%J.out
 #SBATCH --mem=20G
 #SBATCH --qos=short
@@ -20,22 +19,8 @@
 #---------------------------------------------------------------------------------------------------
 # User-defined parameters
 
-# Paths
-# -----
-# run_dir: Where the WRF ensemble will be run
-# wrf_src: Location of the compiled WRF code
-# cm1_rst: CM1 restart file used to modify wrfinput_d01. Only used if mod_wrfinput=1
-# home: Should not need to change this
-run_dir=/work/ahouston/smurdzek/wrf_ens_github_test
-wrf_src=/home/ahouston/smurdzek/WRF_code/idealized/em_quarter_ss_modified/WRF
-cm1_rst=/work/ahouston/smurdzek/CM1_output/cm1out_rst_000004.nc
-home=`pwd`
-
-# Machine (needed for loading the proper environment)
-# ---------------------------------------------------
-# Note that the top portion of this script (i.e., the SBATCH parameters) will likely need to be 
-# edited for different machines
-machine='swan'
+# Initialize environment variables in user_config.sh
+bash user_config.sh
 
 # Ensemble member configurations
 # ------------------------------
@@ -50,7 +35,7 @@ machine='swan'
 # skeb_opt: WRF skebs option for this ensemble member. 0 = don't use SKEB, 1 = use SKEB
 
 # Single control member, no SKEB
-ens_subdir=(WRF)
+ens_subdir=(WRF2)
 pbl_opt=(5)
 sfclay_opt=(5)
 ra_sw_opt=(4)
@@ -83,7 +68,7 @@ ndcnst=300
 #---------------------------------------------------------------------------------------------------
 # You shouldn't need to modify anything below here
 
-source ${home}/env/wrf_${machine}.env
+source ${WFLOW_HOME}/env/wrf_${MACHINE}.env
 module list
 
 for i in "${!ens_subdir[@]}"; do
@@ -95,13 +80,13 @@ for i in "${!ens_subdir[@]}"; do
   echo
 
   # Create run directory
-  mkdir -p ${run_dir}/${ens_subdir[i]}
-  bash ${home}/scripts/copy_run.sh ${wrf_src} ${run_dir}/${ens_subdir[i]}
+  mkdir -p ${RUN_DIR}/${ens_subdir[i]}
+  bash ${WFLOW_HOME}/scripts/copy_run.sh ${WRF_SRC} ${RUN_DIR}/${ens_subdir[i]}
 
   # Copy namelist and input sounding
-  cd ${run_dir}/${ens_subdir[i]}/run
-  cp ${home}/fix/input_sounding .
-  cp ${home}/fix/namelist.input.TEMPLATE ./namelist.input
+  cd ${RUN_DIR}/${ens_subdir[i]}/run
+  cp ${WFLOW_HOME}/fix/input_sounding .
+  cp ${WFLOW_HOM}/fix/namelist.input.TEMPLATE ./namelist.input
 
   # Modify namelist
   sed -i "s={PBL_OPT}=${pbl_opt[i]}=" ./namelist.input
@@ -117,10 +102,10 @@ for i in "${!ens_subdir[@]}"; do
   # Modify wrfinput_d01 using CM1 output
   if [[ ${mod_wrfinput} -eq 1 ]]; then
     mv wrfinput_d01 wrfinput_d01_original
-    source ${home}/env/python_${machine}.env
-    python ${home}/scripts/modify_wrf_with_cm1.py \
-           ${cm1_rst} \
-           ${home}/fix/input_sounding_cm1 \
+    source ${WFLOW_HOME}/env/python_${MACHINE}.env
+    python ${WFLOW_HOME}/scripts/modify_wrf_with_cm1.py \
+           ${CM1_RST} \
+           ${WFLOW_HOME}/fix/input_sounding_cm1 \
            wrfinput_d01_original \
            wrfinput_d01 \
            --ndcnst ${ndcnst} \
@@ -128,7 +113,7 @@ for i in "${!ens_subdir[@]}"; do
   fi
 
   # Run WRF
-  source ${home}/env/wrf_${machine}.env
+  source ${WFLOW_HOME}/env/wrf_${MACHINE}.env
   srun ./wrf.exe
  
 done

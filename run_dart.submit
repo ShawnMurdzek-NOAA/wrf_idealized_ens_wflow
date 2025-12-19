@@ -1,0 +1,114 @@
+#!/bin/bash
+
+#SBATCH --ntasks=4
+#SBATCH --time=00:30:00
+#SBATCH -J DART
+#SBATCH --output=%x-%J.out
+#SBATCH --mem=20G
+
+#---------------------------------------------------------------------------------------------------
+# Description
+
+
+#---------------------------------------------------------------------------------------------------
+# User-defined parameters
+
+# Paths
+# -----
+# run_dir: Where the WRF-DART will be run
+# wrf_src: Location of the compiled WRF code
+# dart_src: Location of the compiled DART code
+# home: Should not need to change this
+run_dir=/work/ahouston/smurdzek/dart_test/wflow_test
+wrf_src=/home/ahouston/smurdzek/WRF_code/idealized/em_quarter_ss_modified/WRF
+dart_src=/work/ahouston/smurdzek/dart_test/wrf_skeb_dart_1ob_test/DART
+home=`pwd`
+
+# Machine (needed for loading the proper environment)
+# ---------------------------------------------------
+# Note that the top portion of this script (i.e., the SBATCH parameters) will likely need to be 
+# edited for different machines
+machine='swan'
+
+# WRF Ensemble Priors
+# -------------------
+# Idealized WRF output files used for DA
+priors=( /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/ctrl/WRF/run/wrfout_d01_2009-04-15_21:00:00
+         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb1/run/wrfout_d01_2009-04-15_21:00:00
+         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb2/run/wrfout_d01_2009-04-15_21:00:00
+         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb3/run/wrfout_d01_2009-04-15_21:00:00
+         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb4/run/wrfout_d01_2009-04-15_21:00:00
+         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb5/run/wrfout_d01_2009-04-15_21:00:00
+         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb6/run/wrfout_d01_2009-04-15_21:00:00
+         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb7/run/wrfout_d01_2009-04-15_21:00:00
+         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb8/run/wrfout_d01_2009-04-15_21:00:00
+         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb9/run/wrfout_d01_2009-04-15_21:00:00
+         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb10/run/wrfout_d01_2009-04-15_21:00:00
+         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb11/run/wrfout_d01_2009-04-15_21:00:00
+         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb12/run/wrfout_d01_2009-04-15_21:00:00
+         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb13/run/wrfout_d01_2009-04-15_21:00:00
+         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb14/run/wrfout_d01_2009-04-15_21:00:00
+         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb15/run/wrfout_d01_2009-04-15_21:00:00
+         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb16/run/wrfout_d01_2009-04-15_21:00:00
+	 /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb17/run/wrfout_d01_2009-04-15_21:00:00 )
+
+# Observations
+# ------------
+# DART obs_seq.out file used for DA
+obs_file=/work/ahouston/smurdzek/dart_test/wrf_skeb_dart_1ob_test/obs_seq_uas_south.out
+
+
+#---------------------------------------------------------------------------------------------------
+# You shouldn't need to modify anything below here
+
+
+# Set environment accordingly
+module load compiler/intel/20 openmpi/4.0 WRF/v4         # set this appropriately #%%%#
+module load NCO/4.9          # set this appropriately #%%%#
+module load NCL/6.6    # set this appropriately #%%%#
+
+export MPI_SHEPHERD="FALSE"
+export TMPDIR="/dev/shm"
+ulimit -s unlimited
+
+# Copy appropriate version of filter
+#cp ../../wrf_dart_rszot/ensemble_control/rundir/filter .
+cp ../DART/models/wrf/work/filter .
+
+# Copy observations
+#cp ../obs_seq_raob.out ./obs_seq.out
+cp ../obs_seq_uas_east.out ./obs_seq.out
+
+# Create empty text files for prior and posterior file lists
+prior_list_fname="input_list_d01.txt"
+out_list_fname="output_list_d01.txt"
+if [[ -f ${prior_list_fname} ]]; then
+  rm ${prior_list_fname}
+fi
+if [[ -f ${out_list_fname} ]]; then
+  rm ${out_list_fname}
+fi
+touch ${prior_list_fname}
+touch ${out_list_fname}
+
+# Copy priors and populate prior and posterior file lists
+priors=(../priors/prior_d01*)
+for i in "${!priors[@]}"; do
+  d="advance_temp$((i+1))"
+  mkdir -p ${d}
+  cp ${priors[i]} ./advance_temp$((i+1))/wrfinput_d01
+  echo "./${d}/wrfinput_d01" >> ${prior_list_fname}
+  echo "filter_out_d01.$((i+1))" >> ${out_list_fname}
+done
+
+# Copy over a sample prior file
+cp ./advance_temp1/wrfinput_d01 .
+
+# Run DART
+srun ./filter
+
+# Compute increments
+for i in "${!priors[@]}"; do
+  d="advance_temp$((i+1))"
+  ncdiff -O filter_out_d01.$((i+1)) ${d}/wrfinput_d01 increment.$((i+1))
+done
