@@ -13,22 +13,8 @@
 #---------------------------------------------------------------------------------------------------
 # User-defined parameters
 
-# Paths
-# -----
-# run_dir: Where the WRF-DART will be run
-# wrf_src: Location of the compiled WRF code
-# dart_src: Location of the compiled DART code
-# home: Should not need to change this
-run_dir=/work/ahouston/smurdzek/dart_test/wflow_test
-wrf_src=/home/ahouston/smurdzek/WRF_code/idealized/em_quarter_ss_modified/WRF
-dart_src=/work/ahouston/smurdzek/dart_test/wrf_skeb_dart_1ob_test/DART
-home=`pwd`
-
-# Machine (needed for loading the proper environment)
-# ---------------------------------------------------
-# Note that the top portion of this script (i.e., the SBATCH parameters) will likely need to be 
-# edited for different machines
-machine='swan'
+# Initialize environment variables in user_config.sh
+bash user_config.sh
 
 # WRF Ensemble Priors
 # -------------------
@@ -57,27 +43,20 @@ priors=( /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/ctrl/WRF/run/wrfout_d
 # DART obs_seq.out file used for DA
 obs_file=/work/ahouston/smurdzek/dart_test/wrf_skeb_dart_1ob_test/obs_seq_uas_south.out
 
+# Subdirectory where DART is run
+# ------------------------------
+dart_subdir=dart_test
+
+# Other Options
+# -------------
+mod_wrf_with_lat_lon=1
+
 
 #---------------------------------------------------------------------------------------------------
 # You shouldn't need to modify anything below here
 
-
-# Set environment accordingly
-module load compiler/intel/20 openmpi/4.0 WRF/v4         # set this appropriately #%%%#
-module load NCO/4.9          # set this appropriately #%%%#
-module load NCL/6.6    # set this appropriately #%%%#
-
-export MPI_SHEPHERD="FALSE"
-export TMPDIR="/dev/shm"
-ulimit -s unlimited
-
-# Copy appropriate version of filter
-#cp ../../wrf_dart_rszot/ensemble_control/rundir/filter .
-cp ../DART/models/wrf/work/filter .
-
-# Copy observations
-#cp ../obs_seq_raob.out ./obs_seq.out
-cp ../obs_seq_uas_east.out ./obs_seq.out
+mkdir -p ${RUN_DIR}/${dart_subdir}
+cd ${RUN_DIR}/${dart_subdir}
 
 # Create empty text files for prior and posterior file lists
 prior_list_fname="input_list_d01.txt"
@@ -91,24 +70,44 @@ fi
 touch ${prior_list_fname}
 touch ${out_list_fname}
 
-# Copy priors and populate prior and posterior file lists
-priors=(../priors/prior_d01*)
+# Load Python environment, if necessary
+if [[ ${mod_wrf_with_lat_lon} -gt 0 ]]; then
+  source ${WFLOW_HOME}/env/python_${MACHINE}.env
+fi
+
+# Copy priors, add (lat, lon) coords, and populate prior and posterior file lists
+mkdir -p priors
 for i in "${!priors[@]}"; do
-  d="advance_temp$((i+1))"
+  d="priors/mem$((i+1))"
   mkdir -p ${d}
-  cp ${priors[i]} ./advance_temp$((i+1))/wrfinput_d01
+  cp ${priors[i]} ./${d}/wrfinput_d01
+  if [[ ${mod_wrf_with_lat_lon} - gt 0 ]]; then
+    python -u ${WFLOW_HOME}/script/modify_wrf_lat_lon.py ./${d}/wrfinput_d01
+    python -u ${WFLOW_HOME}/script/add_global_attrs.py ./${d}/wrfinput_d01
+  fi
   echo "./${d}/wrfinput_d01" >> ${prior_list_fname}
   echo "filter_out_d01.$((i+1))" >> ${out_list_fname}
 done
 
 # Copy over a sample prior file
-cp ./advance_temp1/wrfinput_d01 .
+cp ./priors/mem1/wrfinput_d01 .
+
+# Copy observations
+cp ${obs_file} ./obs_seq.out
+
+# Configure environment
+source ${WFLOW_HOME}/env/dart_${MACHINE}.env
+ulimit -s unlimited
+module list
+
+# Copy appropriate version of filter
+cp ${DART_SRC}/models/wrf/work/filter .
 
 # Run DART
 srun ./filter
 
 # Compute increments
 for i in "${!priors[@]}"; do
-  d="advance_temp$((i+1))"
+  d="priors/mem$((i+1))"
   ncdiff -O filter_out_d01.$((i+1)) ${d}/wrfinput_d01 increment.$((i+1))
 done

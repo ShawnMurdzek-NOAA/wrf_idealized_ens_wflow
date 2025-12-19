@@ -14,6 +14,7 @@
 # home: Should not need to change this
 export RUN_DIR=/work/ahouston/smurdzek/wrf_ens_github_test
 export WRF_SRC=/home/ahouston/smurdzek/WRF_code/idealized/em_quarter_ss_modified/WRF
+export DART_SRC=/work/ahouston/smurdzek/dart_test/wrf_skeb_dart_1ob_test/DART
 export CM1_RST=/work/ahouston/smurdzek/CM1_output/cm1out_rst_000004.nc
 export WFLOW_HOME=`pwd`
 
