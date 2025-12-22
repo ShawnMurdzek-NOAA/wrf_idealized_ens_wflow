@@ -41,7 +41,7 @@ priors=( /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/ctrl/WRF/run/wrfout_d
 # Observations
 # ------------
 # DART obs_seq.out file used for DA
-obs_file=/work/ahouston/smurdzek/dart_test/wrf_skeb_dart_1ob_test/obs_seq_uas_south.out
+obs_file=/work/ahouston/smurdzek/wrf_ens_github_test/wrf_idealized_ens_wflow/sample_data/obs_seq_uas_east_1ob.out
 
 # Subdirectory where DART is run
 # ------------------------------
@@ -81,9 +81,9 @@ for i in "${!priors[@]}"; do
   d="priors/mem$((i+1))"
   mkdir -p ${d}
   cp ${priors[i]} ./${d}/wrfinput_d01
-  if [[ ${mod_wrf_with_lat_lon} - gt 0 ]]; then
-    python -u ${WFLOW_HOME}/script/modify_wrf_lat_lon.py ./${d}/wrfinput_d01
-    python -u ${WFLOW_HOME}/script/add_global_attrs.py ./${d}/wrfinput_d01
+  if [[ ${mod_wrf_with_lat_lon} -gt 0 ]]; then
+    python -u ${WFLOW_HOME}/scripts/modify_wrf_lat_lon.py ./${d}/wrfinput_d01
+    python -u ${WFLOW_HOME}/scripts/add_global_attrs.py ./${d}/wrfinput_d01
   fi
   echo "./${d}/wrfinput_d01" >> ${prior_list_fname}
   echo "filter_out_d01.$((i+1))" >> ${out_list_fname}
@@ -100,8 +100,9 @@ source ${WFLOW_HOME}/env/dart_${MACHINE}.env
 ulimit -s unlimited
 module list
 
-# Copy appropriate version of filter
+# Copy appropriate version of filter and namelist
 cp ${DART_SRC}/models/wrf/work/filter .
+cp ${WFLOW_HOME}/fix/input.nml .
 
 # Run DART
 srun ./filter
