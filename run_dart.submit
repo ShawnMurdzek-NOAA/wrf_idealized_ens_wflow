@@ -1,0 +1,115 @@
+#!/bin/bash
+
+#SBATCH --ntasks=4
+#SBATCH --time=00:30:00
+#SBATCH -J DART
+#SBATCH --output=%x-%J.out
+#SBATCH --mem=20G
+
+#---------------------------------------------------------------------------------------------------
+# Description
+
+
+#---------------------------------------------------------------------------------------------------
+# User-defined parameters
+
+# Initialize environment variables in user_config.sh
+source user_config.sh
+
+# WRF Ensemble Priors
+# -------------------
+# Idealized WRF output files used for DA
+wrf_dir=/work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM
+priors=( ${wrf_dir}/ctrl/WRF/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb1/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb2/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb3/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb4/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb5/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb6/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb7/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb8/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb9/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb10/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb11/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb12/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb13/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb14/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb15/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb16/run/wrfout_d01_2009-04-15_21:00:00
+	 ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb17/run/wrfout_d01_2009-04-15_21:00:00 )
+
+# Observations
+# ------------
+# DART obs_seq.out file used for DA
+obs_file=${WFLOW_HOME}/sample_data/obs_seq_uas_east_1ob.out
+
+# Subdirectory where DART is run
+# ------------------------------
+dart_subdir=dart_test
+
+# Other Options
+# -------------
+mod_wrf_with_lat_lon=1
+
+
+#---------------------------------------------------------------------------------------------------
+# You shouldn't need to modify anything below here
+
+mkdir -p ${RUN_DIR}/${dart_subdir}
+cd ${RUN_DIR}/${dart_subdir}
+
+# Create empty text files for prior and posterior file lists
+prior_list_fname="input_list_d01.txt"
+out_list_fname="output_list_d01.txt"
+if [[ -f ${prior_list_fname} ]]; then
+  rm ${prior_list_fname}
+fi
+if [[ -f ${out_list_fname} ]]; then
+  rm ${out_list_fname}
+fi
+touch ${prior_list_fname}
+touch ${out_list_fname}
+
+# Load Python environment, if necessary
+if [[ ${mod_wrf_with_lat_lon} -gt 0 ]]; then
+  source ${WFLOW_HOME}/env/python_${MACHINE}.env
+fi
+
+# Copy priors, add (lat, lon) coords, and populate prior and posterior file lists
+mkdir -p priors
+for i in "${!priors[@]}"; do
+  d="priors/mem$((i+1))"
+  mkdir -p ${d}
+  cp ${priors[i]} ./${d}/wrfinput_d01
+  if [[ ${mod_wrf_with_lat_lon} -gt 0 ]]; then
+    python -u ${WFLOW_HOME}/scripts/modify_wrf_lat_lon.py ./${d}/wrfinput_d01
+    python -u ${WFLOW_HOME}/scripts/add_global_attrs.py ./${d}/wrfinput_d01
+  fi
+  echo "./${d}/wrfinput_d01" >> ${prior_list_fname}
+  echo "filter_out_d01.$((i+1))" >> ${out_list_fname}
+done
+
+# Copy over a sample prior file
+cp ./priors/mem1/wrfinput_d01 .
+
+# Copy observations
+cp ${obs_file} ./obs_seq.out
+
+# Configure environment
+source ${WFLOW_HOME}/env/dart_${MACHINE}.env
+ulimit -s unlimited
+module list
+
+# Copy appropriate version of filter and namelist
+cp ${DART_SRC}/models/wrf/work/filter .
+cp ${WFLOW_HOME}/fix/input.nml .
+
+# Run DART
+srun ./filter
+
+# Compute increments
+for i in "${!priors[@]}"; do
+  d="priors/mem$((i+1))"
+  ncdiff -O filter_out_d01.$((i+1)) ${d}/wrfinput_d01 increment.$((i+1))
+done
