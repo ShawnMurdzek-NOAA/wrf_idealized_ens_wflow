@@ -19,29 +19,30 @@ source user_config.sh
 # WRF Ensemble Priors
 # -------------------
 # Idealized WRF output files used for DA
-priors=( /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/ctrl/WRF/run/wrfout_d01_2009-04-15_21:00:00
-         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb1/run/wrfout_d01_2009-04-15_21:00:00
-         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb2/run/wrfout_d01_2009-04-15_21:00:00
-         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb3/run/wrfout_d01_2009-04-15_21:00:00
-         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb4/run/wrfout_d01_2009-04-15_21:00:00
-         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb5/run/wrfout_d01_2009-04-15_21:00:00
-         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb6/run/wrfout_d01_2009-04-15_21:00:00
-         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb7/run/wrfout_d01_2009-04-15_21:00:00
-         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb8/run/wrfout_d01_2009-04-15_21:00:00
-         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb9/run/wrfout_d01_2009-04-15_21:00:00
-         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb10/run/wrfout_d01_2009-04-15_21:00:00
-         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb11/run/wrfout_d01_2009-04-15_21:00:00
-         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb12/run/wrfout_d01_2009-04-15_21:00:00
-         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb13/run/wrfout_d01_2009-04-15_21:00:00
-         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb14/run/wrfout_d01_2009-04-15_21:00:00
-         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb15/run/wrfout_d01_2009-04-15_21:00:00
-         /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb16/run/wrfout_d01_2009-04-15_21:00:00
-	 /work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM/psi5e-4_t5e-5_ztau1800_exp1.83/skeb17/run/wrfout_d01_2009-04-15_21:00:00 )
+wrf_dir=/work/ahouston/smurdzek/WRF_ens_skeb_tests_no_THM
+priors=( ${wrf_dir}/ctrl/WRF/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb1/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb2/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb3/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb4/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb5/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb6/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb7/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb8/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb9/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb10/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb11/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb12/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb13/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb14/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb15/run/wrfout_d01_2009-04-15_21:00:00
+         ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb16/run/wrfout_d01_2009-04-15_21:00:00
+	 ${wrf_dir}/psi5e-4_t5e-5_ztau1800_exp1.83/skeb17/run/wrfout_d01_2009-04-15_21:00:00 )
 
 # Observations
 # ------------
 # DART obs_seq.out file used for DA
-obs_file=/work/ahouston/smurdzek/wrf_ens_github_test/wrf_idealized_ens_wflow/sample_data/obs_seq_uas_east_1ob.out
+obs_file=${WFLOW_HOME}/sample_data/obs_seq_uas_east_1ob.out
 
 # Subdirectory where DART is run
 # ------------------------------
