@@ -41,9 +41,10 @@ The `run_wrf.submit` script does the following for each ensemble member in seria
 *In the following sections, {machine} is the machine name. For UNL HCC, {machine} = swan*
 
 1. If it does not already exist for the desired machine, create a DART environment file in `./env/dart_{machine}.env`.  
-2. Compile DART using the environment in `./env/dart_{machine}.env` and the namelist in `./fix/input.nml`.
-3. Create a Python environment using the environment in `./env/py_wrf_ens.yml`. If conda is available, this can be done using `conda env create -f ./env/py_wrf_ens.yml`. This environment is identical to that used to run the idealized WRF ensemble, so if you already created a Python environment for the idealized WRF ensemble, you can skip this step and the following step.
-4. Create a Python environment file using the Python environment created in (3) in `./env/python_{machine}.env`.
+2. Download DART, copy the namelist in `./fix/input.nml` to `DART/models/wrf/work/`, and change `[UPDATE_PATH]` in `input.nml` so that it points to the location of `wrf_idealized_ens_wflow`.
+3. Compile DART using the environment in `./env/dart_{machine}.env` and the namelist in `./fix/input.nml`.
+4. Create a Python environment using the environment in `./env/py_wrf_ens.yml`. If conda is available, this can be done using `conda env create -f ./env/py_wrf_ens.yml`. This environment is identical to that used to run the idealized WRF ensemble, so if you already created a Python environment for the idealized WRF ensemble, you can skip this step and the following step.
+5. Create a Python environment file using the Python environment created in (3) in `./env/python_{machine}.env`.
 
 #### Running an ensemble
 

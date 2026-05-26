@@ -224,8 +224,8 @@
                               '../../../observations/forward_operators/obs_def_gts_mod.f90',
                               '../../../observations/forward_operators/obs_def_QuikSCAT_mod.f90',
                               '../../../observations/forward_operators/obs_def_vortex_mod.f90'
-                              '/home/ahouston/rszot/dav2/DART/observations/forward_operators/obs_def_comet_mod.f90',
-                              '/home/ahouston/rszot/dav2/DART/observations/forward_operators/obs_def_uas_mod.f90'
+                              '[UPDATE PATH]/wrf_idealized_ens_wflow/fix/obs_def/obs_def_comet_mod.f90',
+                              '[UPDATE_PATH]/wrf_idealized_ens_wflow/fix/obs_def/obs_def_uas_mod.f90'
    /
 
 
